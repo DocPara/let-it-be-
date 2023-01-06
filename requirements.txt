@@ -1,5 +1,6 @@
 beautifulsoup4
 hachoir
+https://github.com/FFmpeg/FFmpeg
 numpy
 Pillow
 pyrogram==1.3.6
