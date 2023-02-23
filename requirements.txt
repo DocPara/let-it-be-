@@ -1,6 +1,5 @@
 beautifulsoup4
 hachoir
-ffmpeg==4.4
 ffmpeg
 ffmpeg-python
 numpy
