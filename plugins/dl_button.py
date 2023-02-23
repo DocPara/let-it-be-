@@ -271,6 +271,19 @@ async def ddl_call_back(bot, update):
         )
 
 
+async def download_coroutine(bot, url, file_name, chunk_size=128):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            with open(file_name, "wb") as f:
+                while True:
+                    chunk = await response.content.read(chunk_size)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    await bot.edit_message_text(chat_id=CHAT_ID, message_id=MESSAGE_ID,
+                                                text=f"Downloading... {f.tell()}")
+
+"""
 async def download_coroutine(file_url, file_name, bot, message):
     async with aiohttp.ClientSession() as session:
         async with session.get(file_url) as response:
@@ -291,6 +304,9 @@ async def download_coroutine(file_url, file_name, bot, message):
                             await bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=f"Downloading... {round(f.tell()*100/total_length,2)}%")
             else:
                 await bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=f"Failed to download {file_name}")
+
+
+"""
 URL: {}
 File Size: {}""".format(url, humanbytes(total_length))
         )
