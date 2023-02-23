@@ -271,18 +271,26 @@ async def ddl_call_back(bot, update):
         )
 
 
-async def download_coroutine(bot, session, url, file_name, chat_id, message_id, start):
-    downloaded = 0
-    display_message = ""
-    async with session.get(url, timeout=Config.PROCESS_MAX_TIMEOUT) as response:
-        total_length = int(response.headers["Content-Length"])
-        content_type = response.headers["Content-Type"]
-        if "text" in content_type and total_length < 500:
-            return await response.release()
-        await bot.edit_message_text(
-            chat_id,
-            message_id,
-            text="""Initiating Download
+async def download_coroutine(file_url, file_name, bot, message):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(file_url) as response:
+            if response.status == 200:
+                # Handle the absence of Content-Length header gracefully
+                total_length = response.headers.get("Content-Length")
+                if total_length is not None:
+                    total_length = int(total_length)
+                else:
+                    total_length = None
+
+                # Use chunked transfer encoding
+                async with aiofiles.open(file_name, mode='wb') as f:
+                    async for chunk in response.content.iter_chunked(1024*1024):
+                        await f.write(chunk)
+                        # Update progress bar
+                        if total_length is not None:
+                            await bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=f"Downloading... {round(f.tell()*100/total_length,2)}%")
+            else:
+                await bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=f"Failed to download {file_name}")
 URL: {}
 File Size: {}""".format(url, humanbytes(total_length))
         )
